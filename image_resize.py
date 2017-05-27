@@ -19,6 +19,15 @@ def process_args():
     return parser.parse_args()
 
 
+def get_image_data(path_to_original):
+    path_to_original = os.path.abspath(path_to_original.name)
+    try:
+        image = Image.open(path_to_original)
+    except IOError:
+        return None
+    return image
+
+
 def get_resize_value(original_size, width=None, heigth=None, scale=None):
     x_size, y_size = original_size
     ratio = None
@@ -44,30 +53,29 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
     return (round(x_resize), round(y_resize))
 
 
-def resize_image(path_to_original, path_to_result, width, heigth, scale):
-    path_to_original = os.path.abspath(path_to_original.name)
+def resize_image(image_data, path_to_result, x_resize, y_resize):
     path_to_result = os.path.abspath(path_to_result)
+
     if not os.path.exists(path_to_result):
         os.mkdir(path_to_result)
-    try:
-        with Image.open(path_to_original) as image:
-            xsize, ysize = image.size
-            x_resize, y_resize = get_resize_value(image.size, 
-                                                  width, 
-                                                  heigth,
-                                                  scale)
-            
-            filename = os.path.basename(image.filename).rsplit('.', 1)[0]
-            new_filename = "{}_{}x{}.{}".format(filename,
-                                                x_resize, 
-                                                y_resize,
-                                                image.format.lower())
-            image = image.resize((x_resize, y_resize), Image.ANTIALIAS)
-            image.save(os.path.join(path_to_result, new_filename))
-    except IOError:
-        print("File does not contain image data")
+    xsize, ysize = image_data.size
+    filename = os.path.basename(image_data.filename).rsplit('.', 1)[0]
+    new_filename = "{}_{}x{}.{}".format(filename,
+                                        x_resize, 
+                                        y_resize,
+                                        image_data.format.lower())
+    
+    image_new = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
+    image_new.save(os.path.join(path_to_result, new_filename))
+    print('File {} has been saved'.format(new_filename))
 
 
 if __name__ == '__main__':
     args = process_args()
-    resize_image(args.file, args.path, args.width, args.heigth, args.scale)
+    image_data = get_image_data(args.file)
+    if image_data:
+        x_resize, y_resize = get_resize_value(image_data.size, args.width, 
+                                              args.heigth, args.scale)
+        resize_image(image_data, args.path, x_resize, y_resize)
+    else:
+        print("File does not contain image data")
