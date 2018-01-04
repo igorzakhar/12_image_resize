@@ -9,21 +9,21 @@ def process_args():
     parser.add_argument(
         'file',
         type=argparse.FileType('r'),
-        help='Input filename'
+        help='Original image filename'
     )
     parser.add_argument(
         '-x',
         '--width',
         type=float,
         default=None,
-        help='Input value width in px'
+        help='Input value width in pixels'
     )
     parser.add_argument(
         '-y',
         '--heigth',
         type=float,
         default=None,
-        help='Input value heigth in px'
+        help='Input value heigth in pixels'
     )
     parser.add_argument(
         '-s',
@@ -36,7 +36,7 @@ def process_args():
         '-p',
         '--path',
         default=os.getcwd(),
-        help='Set the directory paths for saving file '
+        help='Enter the path to the directory for saving file '
     )
     return parser.parse_args()
 
