@@ -76,22 +76,29 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
     return (round(x_resize), round(y_resize))
 
 
-def resize_image(image_data, path_to_result, x_resize, y_resize):
-    path_to_result = os.path.abspath(path_to_result)
-
-    if not os.path.exists(path_to_result):
-        os.mkdir(path_to_result)
+def resize_image(image_data, x_resize, y_resize):
     xsize, ysize = image_data.size
-    filename = os.path.basename(image_data.filename).rsplit('.', 1)[0]
+    resized_image = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
+
+    return resized_image
+
+
+def save_image(resized_image, original_image, x_size, y_size, path_to_save):
+    path_to_save = os.path.abspath(path_to_save)
+
+    if not os.path.exists(path_to_save):
+        os.mkdir(path_to_save)
+
+    filename = os.path.basename(original_image.filename).rsplit('.', 1)[0]
     new_filename = '{}_{}x{}.{}'.format(
         filename,
-        x_resize,
-        y_resize,
-        image_data.format.lower()
+        x_size,
+        y_size,
+        original_image.format.lower()
     )
-    image_new = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
-    image_new.save(os.path.join(path_to_result, new_filename))
-    print('File {} has been saved to {}'.format(new_filename, path_to_result))
+    resized_image.save(os.path.join(path_to_save, new_filename))
+    string_for_output = 'File {} has been saved to {}'
+    print(string_for_output.format(new_filename, path_to_save))
 
 
 def main():
@@ -105,7 +112,14 @@ def main():
             args.scale
         )
 
-        resize_image(image_data, args.path, x_resize, y_resize)
+        resized_image = resize_image(image_data, x_resize, y_resize)
+        save_image(
+            resized_image,
+            image_data,
+            x_resize,
+            y_resize,
+            args.path
+        )
     else:
         print("File does not contain image data")
 
