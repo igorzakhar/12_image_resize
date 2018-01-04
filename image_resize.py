@@ -61,7 +61,6 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
         y_resize = heigth
     elif width:
         ratio = x_size / width
-        print(ratio)
         x_resize = width
         y_resize = y_size / ratio
     elif heigth:
@@ -71,6 +70,8 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
     elif scale:
         x_resize = x_size * scale
         y_resize = y_size * scale
+    else:
+        return(x_size, y_size)
 
     return (round(x_resize), round(y_resize))
 
@@ -90,7 +91,7 @@ def resize_image(image_data, path_to_result, x_resize, y_resize):
     )
     image_new = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
     image_new.save(os.path.join(path_to_result, new_filename))
-    print('File {} has been saved'.format(new_filename))
+    print('File {} has been saved to {}'.format(new_filename, path_to_result))
 
 
 def main():
@@ -103,6 +104,7 @@ def main():
             args.heigth,
             args.scale
         )
+
         resize_image(image_data, args.path, x_resize, y_resize)
     else:
         print("File does not contain image data")
