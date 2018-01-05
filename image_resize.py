@@ -73,7 +73,7 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
     else:
         return(x_size, y_size)
 
-    return (round(x_resize), round(y_resize))
+    return round(x_resize), round(y_resize)
 
 
 def resize_image(image_data, x_resize, y_resize):
@@ -89,7 +89,7 @@ def save_image(resized_image, original_image, x_size, y_size, path_to_save):
     if not os.path.exists(path_to_save):
         os.mkdir(path_to_save)
 
-    filename = os.path.basename(original_image.filename).rsplit('.', 1)[0]
+    filename = os.path.splitext(os.path.basename(original_image.filename))[0]
     new_filename = '{}_{}x{}.{}'.format(
         filename,
         x_size,
