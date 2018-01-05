@@ -7,8 +7,8 @@ from PIL import Image
 def process_args():
     parser = argparse.ArgumentParser(description="Resize image from file")
     parser.add_argument(
-        'file',
-        type=argparse.FileType('r'),
+        'filename',
+        type=str,
         help='Original image filename'
     )
     parser.add_argument(
@@ -41,13 +41,12 @@ def process_args():
     return parser.parse_args()
 
 
-def get_image_data(path_to_original):
-    path_to_original = os.path.abspath(path_to_original.name)
+def get_image_data(original_filename):
     try:
-        image = Image.open(path_to_original)
-    except IOError:
-        return None
-    return image
+        image = Image.open(os.path.abspath(original_filename))
+        return image
+    except OSError as error:
+        return error
 
 
 def get_resize_value(original_size, width=None, heigth=None, scale=None):
@@ -79,49 +78,54 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
 def resize_image(image_data, x_resize, y_resize):
     xsize, ysize = image_data.size
     resized_image = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
-
     return resized_image
 
 
-def save_image(resized_image, original_image, x_size, y_size, path_to_save):
-    path_to_save = os.path.abspath(path_to_save)
-
-    if not os.path.exists(path_to_save):
-        os.mkdir(path_to_save)
-
-    filename = os.path.splitext(os.path.basename(original_image.filename))[0]
+def save_image(resized_image, original_file, x_size, y_size, path_to_save):
+    filename = os.path.splitext(os.path.basename(original_file))[0]
     new_filename = '{}_{}x{}.{}'.format(
         filename,
         x_size,
         y_size,
-        original_image.format.lower()
+        original_file.lower()
     )
-    resized_image.save(os.path.join(path_to_save, new_filename))
-    string_for_output = 'File {} has been saved to {}'
-    print(string_for_output.format(new_filename, path_to_save))
+    try:
+        path_to_save = os.path.abspath(path_to_save)
+        resized_image.save(os.path.join(path_to_save, new_filename))
+        return new_filename
+    except OSError as error:
+        return error
 
 
 def main():
     args = process_args()
-    image_data = get_image_data(args.file)
-    if image_data:
-        x_resize, y_resize = get_resize_value(
-            image_data.size,
-            args.width,
-            args.heigth,
-            args.scale
-        )
+    image_data = get_image_data(args.filename)
 
-        resized_image = resize_image(image_data, x_resize, y_resize)
-        save_image(
-            resized_image,
-            image_data,
-            x_resize,
-            y_resize,
-            args.path
-        )
+    if isinstance(image_data, OSError):
+        print("File open error: ", image_data.strerror)
+        return
+
+    x_size, y_size = get_resize_value(
+        image_data.size,
+        args.width,
+        args.heigth,
+        args.scale
+    )
+    resized_img = resize_image(image_data, x_size, y_size)
+    save_message = save_image(
+        resized_img,
+        args.filename,
+        x_size,
+        y_size,
+        args.path
+    )
+
+    if isinstance(save_message, OSError):
+        print("File save error: ", save_message.strerror)
     else:
-        print("File does not contain image data")
+        string_for_output = 'File {} has been saved to {}'
+        path_to_save = os.path.abspath(args.path)
+        print(string_for_output.format(save_message, path_to_save))
 
 
 if __name__ == '__main__':
