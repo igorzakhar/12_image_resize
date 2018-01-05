@@ -71,7 +71,7 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
         x_resize = x_size * scale
         y_resize = y_size * scale
     else:
-        return(x_size, y_size)
+        return x_size, y_size
 
     return round(x_resize), round(y_resize)
 
