@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 
 from PIL import Image
@@ -35,7 +36,6 @@ def process_args():
     parser.add_argument(
         '-p',
         '--path',
-        default=os.getcwd(),
         help='Enter the path to the directory for saving file '
     )
     return parser.parse_args()
@@ -43,8 +43,7 @@ def process_args():
 
 def get_image_data(original_filename):
     try:
-        image = Image.open(os.path.abspath(original_filename))
-        return image
+        return Image.open(os.path.abspath(original_filename))
     except OSError as error:
         return error
 
@@ -76,23 +75,19 @@ def get_resize_value(original_size, width=None, heigth=None, scale=None):
 
 
 def resize_image(image_data, x_resize, y_resize):
-    xsize, ysize = image_data.size
-    resized_image = image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
-    return resized_image
+    return image_data.resize((x_resize, y_resize), Image.ANTIALIAS)
 
 
-def save_image(resized_image, original_file, x_size, y_size, path_to_save):
-    filename = os.path.splitext(os.path.basename(original_file))[0]
-    new_filename = '{}_{}x{}.{}'.format(
-        filename,
-        x_size,
-        y_size,
-        original_file.lower()
-    )
-    try:
+def save_image(resized_image, original_file, path_to_save):
+    if path_to_save:
         path_to_save = os.path.abspath(path_to_save)
-        resized_image.save(os.path.join(path_to_save, new_filename))
-        return new_filename
+    else:
+        filename, ext = os.path.splitext(original_file.filename)
+        x_size, y_size = resized_image.size
+        path_to_save = '{}_{}x{}{}'.format(filename, x_size, y_size, ext)
+
+    try:
+        resized_image.save(path_to_save, original_file.format)
     except OSError as error:
         return error
 
@@ -103,7 +98,7 @@ def main():
 
     if isinstance(image_data, OSError):
         print("File open error: ", image_data.strerror)
-        return
+        sys.exit(image_data.errno)
 
     x_size, y_size = get_resize_value(
         image_data.size,
@@ -112,20 +107,14 @@ def main():
         args.scale
     )
     resized_img = resize_image(image_data, x_size, y_size)
-    save_message = save_image(
+    error = save_image(
         resized_img,
-        args.filename,
-        x_size,
-        y_size,
+        image_data,
         args.path
     )
-
-    if isinstance(save_message, OSError):
-        print("File save error: ", save_message.strerror)
-    else:
-        string_for_output = 'File {} has been saved to {}'
-        path_to_save = os.path.abspath(args.path)
-        print(string_for_output.format(save_message, path_to_save))
+    if isinstance(error, OSError):
+        print("File save error: ", error.strerror)
+        sys.exit(error.errno)
 
 
 if __name__ == '__main__':
